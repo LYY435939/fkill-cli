@@ -6,6 +6,8 @@ import delay from 'delay';
 import noopProcess from 'noop-process';
 import {processExists} from 'process-exists';
 import getPort from 'get-port';
+import FuzzySearch from 'fuzzy-search';
+import {filterAndSortProcesses} from './interactive.js';
 
 const noopProcessKilled = async (t, pid) => {
 	// Ensure the noop process has time to exit
@@ -96,4 +98,21 @@ if (process.platform !== 'win32') {
 test('silent flag with -s shortflag works', async t => {
 	const {exitCode} = await execa('./cli.js', ['-s', '--force', ':1337']);
 	t.is(exitCode, 0);
+});
+
+test('interactive mode hides helper and login shell noise', t => {
+	const processes = [
+		{name: 'Google Chrome Helper', pid: 1, ports: []},
+		{name: '-zsh', pid: 2, ports: []},
+		{name: 'node', pid: 3, ports: []},
+	];
+
+	const visibleProcesses = filterAndSortProcesses(
+		processes,
+		'',
+		new FuzzySearch(processes, ['name'], {caseSensitive: false}),
+		{},
+	);
+
+	t.deepEqual(visibleProcesses.map(process_ => process_.name), ['node']);
 });
