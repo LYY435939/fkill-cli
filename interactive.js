@@ -53,6 +53,7 @@ const deprioritizedProcesses = new Set(['iTerm', 'iTerm2', 'fkill']);
 const isDeprioritizedProcess = process_ => deprioritizedProcesses.has(process_.name);
 const preferNotDeprioritized = preferNotMatching(isDeprioritizedProcess);
 const preferLowAlphanumericNames = (a, b) => a.name.localeCompare(b.name);
+const loginShellProcesses = new Set(['-sh', '-bash', '-zsh', '-fish', '-ksh', '-csh', '-tcsh']);
 
 const preferHighPerformanceImpact = (a, b) => {
 	const hasCpu = typeof a.cpu === 'number' && typeof b.cpu === 'number';
@@ -91,7 +92,8 @@ const preferHeurisicallyInterestingProcesses = (a, b) => {
 
 const isHelperProcess = process_ => process_.name.endsWith('-helper')
 	|| process_.name.endsWith('Helper')
-	|| process_.name.endsWith('HelperApp');
+	|| process_.name.endsWith('HelperApp')
+	|| loginShellProcesses.has(process_.name);
 
 const renderPercentage = percents => {
 	const digits = Math.floor(percents * 10).toString().padStart(2, '0');
@@ -284,4 +286,4 @@ const init = async flags => {
 	listProcesses(processesWithPorts, flags);
 };
 
-export {init, handleFkillError};
+export {init, handleFkillError, filterAndSortProcesses};
